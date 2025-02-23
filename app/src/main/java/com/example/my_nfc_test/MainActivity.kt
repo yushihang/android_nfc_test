@@ -118,65 +118,12 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun processIntent(intent: Intent) {
-        // 尝试从 intent 获取 tag
-        var tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
-        
-        // 如果 intent 中没有 tag，尝试主动获取当前的 tag
-        if (tag == null && adapter?.isEnabled == true) {
-            try {
-                // 注意：这种方式并不能保证一定能读到卡，因为 NFC 读取是基于事件的
-                // 只有当卡片在读取范围内时才能读取
-                val tagFromIntent = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java)
-                if (tagFromIntent != null) {
-                    tag = tagFromIntent
-                }
-            } catch (e: Exception) {
-                // 处理异常
-                androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("NFC 读取失败")
-                    .setMessage("请确保 NFC 卡片已贴近设备")
-                    .setPositiveButton("确定") { dialog, _ -> dialog.dismiss() }
-                    .show()
-                return
-            }
-        }
-
-        if (tag == null) {
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("未检测到 NFC")
-                .setMessage("请将 NFC 卡片贴近设备背面")
-                .setPositiveButton("确定") { dialog, _ -> dialog.dismiss() }
-                .show()
+        val tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java) ?: run {
+            showAlert("未检测到 NFC", "请将 NFC 卡片贴近设备背面")
             return
         }
 
-        // 原有的读卡逻辑
         val message = buildString {
-            append("Intent Action: ${intent.action}\n")
-            append("Tag ID: ${tag.id?.joinToString(":") { "%02X".format(it) }}\n\n")
-            
-            // 读取 IsoDep 数据
-            android.nfc.tech.IsoDep.get(tag)?.let { isoDep ->
-                try {
-                    isoDep.connect()
-                    // 发送 SELECT APDU 命令
-                    val command = byteArrayOf(
-                        0x00.toByte(),  // CLA
-                        0xA4.toByte(),  // INS
-                        0x04.toByte(),  // P1
-                        0x00.toByte(),  // P2
-                        0x07.toByte(),  // Lc
-                        0xA0.toByte(), 0x00.toByte(), 0x00.toByte(), 0x02.toByte(), 
-                        0x47.toByte(), 0x10.toByte(), 0x01.toByte()  // AID
-                    )
-                    val response = isoDep.transceive(command)
-                    append("IsoDep 响应: ${bytesToHex(response)}\n")
-                    isoDep.close()
-                } catch (e: Exception) {
-                    append("IsoDep 读取失败: ${e.message}\n")
-                }
-            }
-            
             // 读取 NDEF 数据
             android.nfc.tech.Ndef.get(tag)?.let { ndef ->
                 try {
@@ -191,26 +138,15 @@ class MainActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     append("NDEF 读取失败: ${e.message}\n")
                 }
-            }
-            
-            // 读取 MifareClassic 数据
-            android.nfc.tech.MifareClassic.get(tag)?.let { mifare ->
-                try {
-                    mifare.connect()
-                    append("Mifare Classic:\n")
-                    append("- 类型: ${mifare.type}\n")
-                    append("- 扇区数: ${mifare.sectorCount}\n")
-                    append("- 块数: ${mifare.blockCount}\n")
-                    mifare.close()
-                } catch (e: Exception) {
-                    append("Mifare 读取失败: ${e.message}\n")
-                }
-            }
+            } ?: append("该卡片不支持 NDEF 格式\n")
         }
 
-        // 显示读取结果
+        showAlert("NFC 卡片内容", message)
+    }
+
+    private fun showAlert(title: String, message: String) {
         androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("NFC 卡片内容")
+            .setTitle(title)
             .setMessage(message)
             .setPositiveButton("确定") { dialog, _ -> dialog.dismiss() }
             .show()
