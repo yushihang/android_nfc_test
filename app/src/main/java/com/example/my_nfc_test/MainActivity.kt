@@ -7,6 +7,7 @@ import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.NfcF
 import android.os.Bundle
+import android.util.Log
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
@@ -32,10 +33,10 @@ class MainActivity : AppCompatActivity() {
         // 初始化 NFC 适配器
         adapter = NfcAdapter.getDefaultAdapter(this)
         
-        // 处理启动 Intent
-        if (intent != null) {
-            processIntent(intent)
-        }
+        // 删除这部分代码
+        // if (intent != null) {
+        //     processIntent(intent)
+        // }
         
         val intent = Intent(this, javaClass).apply {
             addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -113,15 +114,22 @@ class MainActivity : AppCompatActivity() {
     public override fun onResume() {
         super.onResume()
         adapter?.enableForegroundDispatch(this, pendingIntent, intentFiltersArray, techListsArray)
+        // 处理当前 Intent
 
         // put your code here...
     }
     
     private fun processIntent(intent: Intent) {
-        val tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java) ?: run {
-            showAlert("未检测到 NFC", "请将 NFC 卡片贴近设备背面")
-            return
-        }
+        // 打印 intent 信息
+        val intentInfo = "Action: ${intent.action}\n" +
+                        "Type: ${intent.type}\n" +
+                        "Data: ${intent.data}\n" +
+                        "Categories: ${intent.categories}\n" +
+                        "Extras: ${intent.extras?.keySet()?.joinToString()}"
+        
+        android.widget.Toast.makeText(this, intentInfo, android.widget.Toast.LENGTH_LONG).show()
+
+        val tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, Tag::class.java) ?: return
 
         val message = buildString {
             // 读取 NDEF 数据
@@ -152,12 +160,11 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
     
-    private fun bytesToHex(bytes: ByteArray): String {
-        return bytes.joinToString(":") { "%02X".format(it) }
-    }
+
     
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        Log.d("NFC_DEBUG", "onNewIntent: action=${intent.action}")
         processIntent(intent)
     }
 }

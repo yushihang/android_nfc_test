@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    
+
     <!-- NFC 权限声明 -->
     <uses-permission android:name="android.permission.NFC" />
     <uses-feature android:name="android.hardware.nfc" android:required="true" />
@@ -22,25 +22,35 @@
             android:launchMode="singleTask"
             android:theme="@style/Theme.NFC_TEST">
 
+            <!-- NDEF_DISCOVERED 过滤器 -->
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <!-- TECH_DISCOVERED 过滤器 -->
+            <intent-filter>
+                <action android:name="android.nfc.action.TECH_DISCOVERED"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+
+            <!-- TAG_DISCOVERED 过滤器 -->
+            <intent-filter>
+                <action android:name="android.nfc.action.TAG_DISCOVERED"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+
             <!-- 默认启动 -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- NFC 相关的 intent-filter -->
-            <intent-filter>
-                <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
-                <action android:name="android.nfc.action.TECH_DISCOVERED"/>
-                <action android:name="android.nfc.action.TAG_DISCOVERED"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
-
             <!-- NFC tech-list meta-data -->
             <meta-data
                 android:name="android.nfc.action.TECH_DISCOVERED"
                 android:resource="@xml/nfc_tech_filter" />
-
         </activity>
     </application>
 </manifest>
