@@ -19,35 +19,34 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTask"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.NFC_TEST">
 
-            <!-- NDEF_DISCOVERED 过滤器 -->
-            <intent-filter>
-                <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <data android:mimeType="text/plain" />
+            <!-- 1. NDEF_DISCOVERED (最高优先级) -->
+            <intent-filter android:priority="100">
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:host="www.hsbc.com" android:pathPrefix="/p"
+                    android:scheme="https" />
             </intent-filter>
 
-            <!-- TECH_DISCOVERED 过滤器 -->
-            <intent-filter>
-                <action android:name="android.nfc.action.TECH_DISCOVERED"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+            <!-- 2. TECH_DISCOVERED (中等优先级) -->
+            <intent-filter android:priority="50">
+                <action android:name="android.nfc.action.TECH_DISCOVERED" />
             </intent-filter>
 
-            <!-- TAG_DISCOVERED 过滤器 -->
-            <intent-filter>
-                <action android:name="android.nfc.action.TAG_DISCOVERED"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+            <!-- 3. TAG_DISCOVERED (最低优先级) -->
+            <intent-filter android:priority="0">
+                <action android:name="android.nfc.action.TAG_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
-            <!-- 默认启动 -->
-            <intent-filter>
+            <!-- 默认启动 (最低优先级) -->
+            <intent-filter android:priority="-100">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- NFC tech-list meta-data -->
             <meta-data
                 android:name="android.nfc.action.TECH_DISCOVERED"
                 android:resource="@xml/nfc_tech_filter" />

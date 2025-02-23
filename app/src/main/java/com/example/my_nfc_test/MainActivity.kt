@@ -30,13 +30,16 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 初始化 NFC 适配器
         adapter = NfcAdapter.getDefaultAdapter(this)
         
-        // 删除这部分代码
-        // if (intent != null) {
-        //     processIntent(intent)
-        // }
+        // Fix the condition check
+        if (intent?.action in arrayOf(
+            NfcAdapter.ACTION_TECH_DISCOVERED,
+            NfcAdapter.ACTION_NDEF_DISCOVERED,
+            NfcAdapter.ACTION_TAG_DISCOVERED
+        )) {
+            processIntent(intent)
+        }
         
         val intent = Intent(this, javaClass).apply {
             addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -164,7 +167,16 @@ class MainActivity : AppCompatActivity() {
     
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         Log.d("NFC_DEBUG", "onNewIntent: action=${intent.action}")
-        processIntent(intent)
+        
+        // Fix the condition check
+        if (intent.action in arrayOf(
+            NfcAdapter.ACTION_TECH_DISCOVERED,
+            NfcAdapter.ACTION_NDEF_DISCOVERED,
+            NfcAdapter.ACTION_TAG_DISCOVERED
+        )) {
+            processIntent(intent)
+        }
     }
 }
